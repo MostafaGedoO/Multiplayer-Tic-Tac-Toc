@@ -6,6 +6,6 @@ public class GridItem : MonoBehaviour
 
     private void OnMouseDown()
     {
-        GameManager.Instance.GridItemClicked(gridPosition);
+        GameManager.Instance.GridItemClickedRpc(gridPosition,GameManager.Instance.GetLocalPlayerType());
     }
 }
