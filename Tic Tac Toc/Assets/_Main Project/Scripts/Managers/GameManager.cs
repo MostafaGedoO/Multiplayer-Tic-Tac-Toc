@@ -10,6 +10,9 @@ public class GameManager : NetworkBehaviour
     private PlayerType currentPlayerType;
     public event Action<Vector2,PlayerType> OnGridItemClikced;
 
+    public event Action OnGameStarted;
+    public event Action<PlayerType> OnTurnChanged;
+    
     private void Awake()
     {
         Instance = this;
@@ -29,7 +32,22 @@ public class GameManager : NetworkBehaviour
         if(IsServer)
         {
             currentPlayerType = PlayerType.X;
+            NetworkManager.OnClientConnectedCallback += OnClientConnected;
         }
+    }
+
+    private void OnClientConnected(ulong _ClientId)
+    {
+        if (NetworkManager.ConnectedClients.Count == 2)
+        {
+            FireOnGameStartedRpc();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void FireOnGameStartedRpc()
+    {
+        OnGameStarted?.Invoke();
     }
 
     [Rpc(SendTo.Server)]
@@ -47,8 +65,16 @@ public class GameManager : NetworkBehaviour
         {
             currentPlayerType = PlayerType.X;
         }
+        
+        FireOnTurnChangedRpc(currentPlayerType);
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void FireOnTurnChangedRpc(PlayerType _playerType)
+    {
+        OnTurnChanged?.Invoke(_playerType);
+    }
+    
     public PlayerType GetLocalPlayerType()
     {
         return playerType;
