@@ -5,12 +5,20 @@ public class GameVisualManager : NetworkBehaviour
 {
     [SerializeField] private NetworkObject xPrefab;
     [SerializeField] private NetworkObject oPrefab;
+    [SerializeField] private NetworkObject winLinePrefab;
 
     private const float GRID_SIZE = 3.1f;
 
     private void Start()
     {
         GameManager.Instance.OnGridItemClikced += GameManager_OnGridItemClikced;
+        GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+    }
+
+    private void GameManager_OnGameWin(Vector2 _pos,float _zEuler)
+    {
+        NetworkObject _networkObject = Instantiate(winLinePrefab, GetWorldGridPosition(_pos), Quaternion.Euler(0,0,_zEuler));
+        _networkObject.Spawn();
     }
 
     private void GameManager_OnGridItemClikced(Vector2 _gridPos , PlayerType _playerType)

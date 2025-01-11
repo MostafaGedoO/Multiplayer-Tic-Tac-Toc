@@ -35,10 +35,15 @@ public class PlayerHUDManager : MonoBehaviour
             xArrow.SetActive(true);
             oArrow.SetActive(false);
         }
-        else
+        else if(_playerType == PlayerType.O)
         {
             xArrow.SetActive(false);
             oArrow.SetActive(true);
+        }
+        else
+        {
+            xArrow.SetActive(false);
+            oArrow.SetActive(false);
         }
     }
     

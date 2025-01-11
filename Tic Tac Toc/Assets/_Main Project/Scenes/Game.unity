@@ -2735,6 +2735,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   xPrefab: {fileID: -3915756616195911916, guid: 3d240d12871e60d418a763ff318283a5, type: 3}
   oPrefab: {fileID: -3125191994983988768, guid: a32c1afe6a73dfe46874994d22cc4925, type: 3}
+  winLinePrefab: {fileID: 7537060241972276289, guid: e2788c870a107204cafdce423195eebf, type: 3}
 --- !u!114 &1730695969
 MonoBehaviour:
   m_ObjectHideFlags: 0
