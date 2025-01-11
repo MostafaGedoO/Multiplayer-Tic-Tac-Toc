@@ -8,11 +8,13 @@ public class GameManager : NetworkBehaviour
 
     private PlayerType playerType;
     private PlayerType currentPlayerType;
-    public event Action<Vector2,PlayerType> OnGridItemClikced;
+    private PlayerType winningPlayerType;
 
+    public event Action<Vector2,PlayerType> OnGridItemClicked;
     public event Action OnGameStarted;
-    public event Action<Vector2,float> OnGameWin;
+    public event Action<Vector2,float,PlayerType> OnGameWin;
     public event Action<PlayerType> OnTurnChanged;
+    public event Action OnRematch;
     
     private PlayerType[,] grid;
     
@@ -63,7 +65,7 @@ public class GameManager : NetworkBehaviour
         
         grid[(int)_gridPos.x, (int)_gridPos.y] = _playerType;
         
-        OnGridItemClikced?.Invoke(_gridPos, _playerType);
+        OnGridItemClicked?.Invoke(_gridPos, _playerType);
 
         if(currentPlayerType == PlayerType.X) 
         {
@@ -87,7 +89,7 @@ public class GameManager : NetworkBehaviour
             if (TestLine(grid[i, 0], grid[i, 1], grid[i, 2]))
             {
                 currentPlayerType = PlayerType.None;
-                OnGameWin?.Invoke(new Vector2(i, 1), 0f);
+                FireOnGameWindRpc(new Vector2(i, 1), 0f, grid[i, 0]);
                 return;
             }
         }
@@ -98,7 +100,7 @@ public class GameManager : NetworkBehaviour
             if (TestLine(grid[0, i], grid[1, i], grid[2, i]))
             {
                 currentPlayerType = PlayerType.None;
-                OnGameWin?.Invoke(new Vector2(1, i), 90f);
+                FireOnGameWindRpc(new Vector2(1, i), 90f, grid[0, i]);
                 return;
             }
         }
@@ -107,24 +109,77 @@ public class GameManager : NetworkBehaviour
         if (TestLine(grid[0, 0], grid[1, 1], grid[2, 2]))
         {
             currentPlayerType = PlayerType.None;
-            OnGameWin?.Invoke(new Vector2(1, 1), 45f);
+            FireOnGameWindRpc(new Vector2(1, 1), 45f, grid[0, 0]);
             return;
         }  
         
         if (TestLine(grid[2, 0], grid[1, 1], grid[0, 2]))
         {
             currentPlayerType = PlayerType.None;
-            OnGameWin?.Invoke(new Vector2(1, 1), -45f);
+            FireOnGameWindRpc(new Vector2(1, 1), -45f, grid[1, 1]);
             return;
         }
         
         //Tie
+        foreach (var _gridItem in grid)
+        {
+            //Check if there is an empty grid item
+            if(_gridItem == PlayerType.None) return;
+        }
         
+        currentPlayerType = PlayerType.None;
+        FireOnGameWindRpc(new Vector2(-1, -1), -1f, PlayerType.None);
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void FireOnGameWindRpc(Vector2 _gridPos, float _zEuler, PlayerType _playerType)
+    {
+        winningPlayerType = _playerType;
+        OnGameWin?.Invoke(_gridPos, _zEuler, _playerType);
+    }
+    
     private bool TestLine(PlayerType _firstPlayerType, PlayerType _secondPlayerType, PlayerType _thirdPlayerType)
     {
         return  _firstPlayerType != PlayerType.None && _firstPlayerType == _secondPlayerType && _firstPlayerType == _thirdPlayerType;
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RematchRpc()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                grid[i, j] = PlayerType.None;
+            }
+        }
+
+        if (winningPlayerType != PlayerType.None)
+        {
+            currentPlayerType = winningPlayerType;
+            FireOnTurnChangedRpc(currentPlayerType);
+        }
+        else
+        {
+            int _randomStart = UnityEngine.Random.Range(0, 2);
+            if (_randomStart == 0)
+            {
+                currentPlayerType = PlayerType.X;
+            }
+            else
+            {
+                currentPlayerType = PlayerType.O;
+            }
+            FireOnTurnChangedRpc(currentPlayerType);
+        }
+        
+        FireOnRematchRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void FireOnRematchRpc()
+    {
+        OnRematch?.Invoke();
     }
     
     [Rpc(SendTo.ClientsAndHost)]
@@ -137,6 +192,7 @@ public class GameManager : NetworkBehaviour
     {
         return playerType;
     }
+
 }
 
 
