@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 public class PlayerHUDManager : MonoBehaviour
@@ -8,10 +9,26 @@ public class PlayerHUDManager : MonoBehaviour
     [SerializeField] private GameObject xArrow;
     [SerializeField] private GameObject oArrow;
 
+    [Header("Score Text")]
+    [SerializeField] private TextMeshProUGUI xScoreText;
+    [SerializeField] private TextMeshProUGUI oScoreText;
+
     private void Start()
     {
         GameManager.Instance.OnGameStarted += GameManager_OnOnGameStarted;
         GameManager.Instance.OnTurnChanged += GameManager_OnTurnChanged;
+        GameManager.Instance.xScore.OnValueChanged += HandleXScoreChange;
+        GameManager.Instance.oScore.OnValueChanged += HandleOScoreChange;
+    }
+
+    private void HandleXScoreChange(int previousValue, int newValue)
+    {
+        xScoreText.text = newValue.ToString();
+    }
+
+    private void HandleOScoreChange(int previousValue, int newValue)
+    {
+        oScoreText.text = newValue.ToString();
     }
 
     private void GameManager_OnOnGameStarted()

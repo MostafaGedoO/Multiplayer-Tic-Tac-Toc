@@ -17,7 +17,10 @@ public class GameManager : NetworkBehaviour
     public event Action OnRematch;
     
     private PlayerType[,] grid;
-    
+
+    public NetworkVariable<int> xScore = new NetworkVariable<int>();
+    public NetworkVariable<int> oScore = new NetworkVariable<int>();
+
     private void Awake()
     {
         Instance = this;
@@ -136,6 +139,17 @@ public class GameManager : NetworkBehaviour
     {
         winningPlayerType = _playerType;
         OnGameWin?.Invoke(_gridPos, _zEuler, _playerType);
+
+        if (!IsServer) return;
+
+        if(winningPlayerType == PlayerType.X)
+        {
+            xScore.Value++;
+        }
+        else if(winningPlayerType == PlayerType.O)
+        {
+            oScore.Value++;
+        }
     }
     
     private bool TestLine(PlayerType _firstPlayerType, PlayerType _secondPlayerType, PlayerType _thirdPlayerType)
